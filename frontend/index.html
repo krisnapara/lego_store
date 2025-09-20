@@ -1,174 +1,127 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <title>Lego Store Online - Upload Gambar</title>
+  <meta charset="UTF-8">
+  <title>Lego Store Online</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background:#fafafa; }
-    h1 { text-align:center; margin-bottom:20px; }
-    .container { max-width:1100px; margin:0 auto; }
-    .form-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; align-items:center; }
-    .form-row input[type="text"],
-    .form-row input[type="number"] { padding:8px; border:1px solid #ddd; border-radius:6px; }
-    .form-row input[type="file"] { padding:6px; }
-    .btn { background:#0052cc; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px; margin-top:20px; }
-    .card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.08); overflow:hidden; display:flex; flex-direction:column; }
-    .card img { width:100%; height:280px; object-fit:cover; background:#eee; }
-    .card-body { padding:12px; flex-grow:1; }
-    .card-body h3 { margin:0 0 8px; font-size:18px; }
-    .card-body p { margin:0; color:#666; font-size:14px; }
-    .card-footer { padding:12px; border-top:1px solid #f0f0f0; display:flex; justify-content:space-between; align-items:center; }
-    .price { font-weight:700; color:#222; }
-    .small { font-size:13px; color:#555; }
-    #preview { width:120px; height:80px; object-fit:cover; border-radius:6px; border:1px solid #ddd; }
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 20px; 
+      text-align: center;
+    }
+    h1 { margin-bottom: 30px; }
+
+    /* Form container agar di tengah */
+    #form-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    form input, form button {
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #007bff; 
+      color: white; 
+      border: none; 
+      cursor: pointer; 
+      border-radius: 5px;
+    }
+    button:hover { background: #0056b3; }
+
+    /* Produk */
+    #product-list {
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 20px; 
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .product {
+      border: 1px solid #ccc; 
+      padding: 15px; 
+      width: 220px; 
+      text-align: center; 
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .product img {
+      max-width: 150px; 
+      height: auto; 
+      display: block; 
+      margin: auto;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Lego Store — Tambah Produk (dengan Gambar)</h1>
+  <h1>🧱Lego Store Online🧱</h1>
 
-    <form id="productForm">
-      <div class="form-row">
-        <input type="text" id="name" placeholder="Nama produk" required>
-        <input type="number" id="price" placeholder="Harga (angka)" required>
-        <input type="number" id="stock" placeholder="Stok" required>
-        <input type="file" id="image" accept="image/*">
-        <button class="btn" type="submit">Tambah Produk</button>
-      </div>
-      <div class="form-row">
-        <img id="preview" src="" alt="Preview" style="display:none;">
-        <span class="small">Jika tidak meng-upload gambar, produk akan tampil tanpa gambar.</span>
-      </div>
+  <!-- Form Tambah Produk di tengah -->
+  <div id="form-container">
+    <form id="addProductForm" enctype="multipart/form-data">
+      <input type="text" name="name" placeholder="Nama produk" required />
+      <input type="number" name="price" placeholder="Harga" required />
+      <input type="number" name="stock" placeholder="Stok" required />
+      <input type="file" name="image" accept="image/*" required />
+      <button type="submit">Tambah Produk</button>
     </form>
-
-    <div class="grid" id="productGrid"></div>
   </div>
 
-<script>
-  const BACKEND = "http://localhost:3000";
-  const API_PRODUCTS = BACKEND + "/products";
-  const API_CART = BACKEND + "/cart";
+  <!-- Daftar Produk -->
+  <div id="product-list"></div>
 
-  const form = document.getElementById('productForm');
-  const nameInput = document.getElementById('name');
-  const priceInput = document.getElementById('price');
-  const stockInput = document.getElementById('stock');
-  const imageInput = document.getElementById('image');
-  const preview = document.getElementById('preview');
-  const productGrid = document.getElementById('productGrid');
+  <script>
+    const form = document.getElementById("addProductForm");
+    const productList = document.getElementById("product-list");
 
-  // preview image ketika memilih file
-  imageInput.addEventListener('change', () => {
-    const f = imageInput.files[0];
-    if (f) {
-      preview.src = URL.createObjectURL(f);
-      preview.style.display = 'block';
-    } else {
-      preview.src = '';
-      preview.style.display = 'none';
-    }
-  });
+    // Tambah Produk
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
 
-  // submit produk: gunakan FormData (multipart/form-data)
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fd = new FormData();
-    fd.append('name', nameInput.value);
-    fd.append('price', priceInput.value);
-    fd.append('stock', stockInput.value);
-    if (imageInput.files[0]) fd.append('image', imageInput.files[0]);
-
-    try {
-      const res = await fetch(API_PRODUCTS, { method: 'POST', body: fd });
-      if (!res.ok) throw new Error('Gagal menambah produk');
-      nameInput.value = '';
-      priceInput.value = '';
-      stockInput.value = '';
-      imageInput.value = '';
-      preview.src = '';
-      preview.style.display = 'none';
-      await fetchProducts();
-      alert('Produk berhasil ditambahkan');
-    } catch (err) {
-      alert('Error: ' + err.message);
-    }
-  });
-
-  // ambil produk dan render
-  async function fetchProducts() {
-    try {
-      const res = await fetch(API_PRODUCTS);
-      const products = await res.json();
-      renderProducts(products);
-    } catch (err) {
-      console.error(err);
-      productGrid.innerHTML = '<p>Gagal memuat produk. Pastikan backend berjalan.</p>';
-    }
-  }
-
-  function renderProducts(products) {
-    productGrid.innerHTML = '';
-    products.forEach(p => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      const imgSrc = p.image ? (BACKEND + p.image) : 'https://via.placeholder.com/600x400?text=No+Image';
-      card.innerHTML = `
-        <img src="${imgSrc}" alt="${escapeHtml(p.name)}" onerror="this.src='https://via.placeholder.com/600x400?text=No+Image'">
-        <div class="card-body">
-          <h3>${escapeHtml(p.name)}</h3>
-          <p class="small">Stok: ${p.stock} pcs</p>
-        </div>
-        <div class="card-footer">
-          <div>
-            <div class="price">Rp ${formatNumber(p.price)}</div>
-          </div>
-          <div>
-            <button class="btn" onclick="addToCart(${p.id})">Beli</button>
-            <button class="btn" style="background:#d9534f;margin-left:8px" onclick="deleteProduct(${p.id})">Hapus</button>
-          </div>
-        </div>
-      `;
-      productGrid.appendChild(card);
-    });
-  }
-
-  // add to cart
-  async function addToCart(id) {
-    try {
-      await fetch(API_CART, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: id, quantity: 1 })
+      const res = await fetch("http://localhost:3000/products", {
+        method: "POST",
+        body: formData
       });
-      alert('Produk ditambahkan ke keranjang');
-    } catch (err) {
-      alert('Gagal menambah ke keranjang');
+      const data = await res.json();
+      alert(data.message);
+      loadProducts();
+      form.reset();
+    });
+
+    // Load Produk
+    async function loadProducts() {
+      const res = await fetch("http://localhost:3000/products");
+      const products = await res.json();
+
+      productList.innerHTML = "";
+      products.forEach(p => {
+        const item = document.createElement("div");
+        item.classList.add("product");
+        item.innerHTML = `
+          <img src="http://localhost:3000/${p.image}" alt="${p.name}">
+          <h3>${p.name}</h3>
+          <p>Harga: Rp${Number(p.price).toLocaleString("id-ID")}</p>
+          <p>Stok: ${p.stock}</p>
+        `;
+        productList.appendChild(item);
+      });
     }
-  }
 
-  // delete product
-  async function deleteProduct(id) {
-    if (!confirm('Hapus produk ini?')) return;
-    try {
-      await fetch(API_PRODUCTS + '/' + id, { method: 'DELETE' });
-      fetchProducts();
-    } catch (err) {
-      alert('Gagal menghapus produk');
-    }
-  }
-
-  // helper
-  function formatNumber(n) {
-    return Number(n).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  }
-  function escapeHtml(s) {
-    if (!s) return '';
-    return s.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
-
-  // initial fetch
-  fetchProducts();
-</script>
+    // Load saat pertama kali
+    loadProducts();
+  </script>
 </body>
 </html>

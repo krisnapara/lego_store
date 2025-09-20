@@ -1,124 +1,64 @@
 const express = require("express");
 const mysql = require("mysql2");
+const multer = require("multer");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
-const port = 3000;
-
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // biar gambar bisa diakses
 
-// 🔗 Koneksi ke MySQL
+// Koneksi MySQL
 const db = mysql.createConnection({
   host: "localhost",
-  user: "root",        // ganti sesuai user phpMyAdmin
-  password: "",        // isi kalau ada password
-  database: "lego_store"
+  user: "root",
+  password: "", // sesuaikan
+  database: "lego_store", // sesuaikan
+  port: 5004 // sesuai setting MySQL kamu
 });
 
-db.connect((err) => {
+db.connect(err => {
   if (err) {
-    console.error("Database connection failed:", err);
-    return;
+    console.error("Koneksi database gagal:", err);
+  } else {
+    console.log("MySQL terkoneksi!");
   }
-  console.log("Connected to MySQL database.");
 });
 
-// 🏗️ Buat tabel jika belum ada
-db.query(`CREATE TABLE IF NOT EXISTS products (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(255),
-  price DECIMAL(10,2),
-  stock INT
-)`);
+// Setup Multer untuk upload gambar
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage });
 
-db.query(`CREATE TABLE IF NOT EXISTS cart (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  productId INT,
-  quantity INT,
-  FOREIGN KEY(productId) REFERENCES products(id)
-)`);
+// API Tambah Produk
+app.post("/products", upload.single("image"), (req, res) => {
+  const { name, price, stock } = req.body;
+  const image = req.file ? `uploads/${req.file.filename}` : null;
 
-// ------------------ API Produk ------------------
+  const sql = "INSERT INTO products (name, price, stock, image) VALUES (?, ?, ?, ?)";
+  db.query(sql, [name, price, stock, image], (err, result) => {
+    if (err) {
+      console.error("Gagal insert:", err);
+      return res.status(500).json({ message: "Gagal menambahkan produk" });
+    }
+    res.json({ message: "Produk berhasil ditambahkan!" });
+  });
+});
 
-// Ambil semua produk
+// API Ambil Semua Produk
 app.get("/products", (req, res) => {
   db.query("SELECT * FROM products", (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) {
+      console.error("Gagal ambil data:", err);
+      return res.status(500).json({ message: "Gagal mengambil produk" });
+    }
     res.json(results);
   });
 });
 
-// Tambah produk
-app.post("/products", (req, res) => {
-  const { name, price, stock } = req.body;
-  db.query(
-    "INSERT INTO products (name, price, stock) VALUES (?, ?, ?)",
-    [name, price, stock],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ id: result.insertId, name, price, stock });
-    }
-  );
-});
-
-// Update produk
-app.put("/products/:id", (req, res) => {
-  const { name, price, stock } = req.body;
-  db.query(
-    "UPDATE products SET name=?, price=?, stock=? WHERE id=?",
-    [name, price, stock, req.params.id],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ updated: result.affectedRows });
-    }
-  );
-});
-
-// Hapus produk
-app.delete("/products/:id", (req, res) => {
-  db.query("DELETE FROM products WHERE id=?", [req.params.id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ deleted: result.affectedRows });
-  });
-});
-
-// ------------------ API Cart ------------------
-
-// Ambil isi keranjang
-app.get("/cart", (req, res) => {
-  db.query(
-    `SELECT cart.id, products.name, products.price, cart.quantity
-     FROM cart JOIN products ON cart.productId = products.id`,
-    (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(results);
-    }
-  );
-});
-
-// Tambah ke keranjang
-app.post("/cart", (req, res) => {
-  const { productId, quantity } = req.body;
-  db.query(
-    "INSERT INTO cart (productId, quantity) VALUES (?, ?)",
-    [productId, quantity],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ id: result.insertId, productId, quantity });
-    }
-  );
-});
-
-// Hapus item dari keranjang
-app.delete("/cart/:id", (req, res) => {
-  db.query("DELETE FROM cart WHERE id=?", [req.params.id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ deleted: result.affectedRows });
-  });
-});
-
-// Jalankan server
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+app.listen(3000, () => console.log("Server running di http://localhost:3000"));
