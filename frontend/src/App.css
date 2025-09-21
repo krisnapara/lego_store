@@ -1,0 +1,218 @@
+/* --- GAYA TATA LETAK UTAMA --- */
+.app-layout {
+  display: flex;
+  /* MEMANGGIL GAMBAR LANGSUNG DARI FOLDER PUBLIC */
+  background-image: url("/Users/khrisnaparamartha/lego_store/frontend/src/lego-back.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex-grow: 1;
+  height: 100vh;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(5px);
+}
+
+/* Penanda bagian dan pemisah */
+.form-section {
+  padding-top: 40px;
+  margin-top: 40px;
+  border-top: 2px solid #eee;
+}
+
+/* --- GAYA GLOBAL DAN SEBELUMNYA --- */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+/* --- GAYA FORMULIR --- */
+.form-product {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.form-product input,
+.form-product button {
+  padding: 10px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  width: 100%;
+  max-width: 300px;
+  box-sizing: border-box;
+}
+
+.form-product button {
+  padding: 10px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.form-product button[type="submit"] {
+  background: #28a745;
+  color: white;
+}
+
+.form-product button[type="submit"]:hover {
+  background: #218838;
+}
+
+.form-product button[type="button"] {
+  background: #dc3545;
+  color: white;
+}
+
+.form-product button[type="button"]:hover {
+  background: #c82333;
+}
+
+.form-product .action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* --- GAYA KARTU PRODUK --- */
+.product-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+.product-card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
+  width: 220px;
+  text-align: center;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.product-image-container {
+  height: 180px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.product-image-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.product-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.product-content h3 {
+  height: 40px;
+  margin: 10px 0 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+.product-card .actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.product-card button {
+  padding: 6px 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.product-card button:first-child {
+  background: #ffc107;
+  color: black;
+}
+
+.product-card button:last-child {
+  background: #dc3545;
+  color: white;
+}
+
+/* --- GAYA POP-UP KONFIRMASI HAPUS --- */
+.confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.confirm-box {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+}
+
+.confirm-box p {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.confirm-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.confirm-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.confirm-yes {
+  background-color: #dc3545;
+  color: white;
+}
+
+.confirm-no {
+  background-color: #6c757d;
+  color: white;
+}
